@@ -7,7 +7,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/castisdev/clog"
+	"github.com/castisdev/gcommon/clog"
 )
 
 const (
