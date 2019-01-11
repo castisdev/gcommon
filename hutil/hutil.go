@@ -138,13 +138,12 @@ func SetOriginRequestHeader(originReqHeader *http.Header, clientReqHeader http.H
 
 // RateLimitResponseWriter :
 type RateLimitResponseWriter struct {
-	http.ResponseWriter
 	respWriter http.ResponseWriter
 	bucket     *ratelimit.Bucket
 }
 
 // NewRateLimitResponseWriter : if bucket is nil, no limit
-func NewRateLimitResponseWriter(w http.ResponseWriter, bucket *ratelimit.Bucket) *RateLimitResponseWriter {
+func NewRateLimitResponseWriter(w http.ResponseWriter, bucket *ratelimit.Bucket) http.ResponseWriter {
 	return &RateLimitResponseWriter{respWriter: w, bucket: bucket}
 }
 
@@ -185,15 +184,21 @@ func (r *RateLimitResponseWriter) Write(b []byte) (int, error) {
 	return r.respWriter.Write(b)
 }
 
+// Flush :
+func (r *RateLimitResponseWriter) Flush() {
+	if f, ok := r.respWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
 // LogResponseWriter :
 type LogResponseWriter struct {
-	http.ResponseWriter
 	respWriter http.ResponseWriter
 	reqID      string
 }
 
 // NewLogResponseWriter :
-func NewLogResponseWriter(w http.ResponseWriter, reqID string) *LogResponseWriter {
+func NewLogResponseWriter(w http.ResponseWriter, reqID string) http.ResponseWriter {
 	return &LogResponseWriter{respWriter: w, reqID: reqID}
 }
 
@@ -225,6 +230,13 @@ func (w *LogResponseWriter) WriteHeader(code int) {
 // Write :
 func (w *LogResponseWriter) Write(b []byte) (int, error) {
 	return w.respWriter.Write(b)
+}
+
+// Flush :
+func (w *LogResponseWriter) Flush() {
+	if f, ok := w.respWriter.(http.Flusher); ok {
+		f.Flush()
+	}
 }
 
 // HTTPClient :
