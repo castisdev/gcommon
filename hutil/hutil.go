@@ -58,7 +58,11 @@ type HTTPRange struct {
 
 // ContentRange :
 func (r HTTPRange) ContentRange(size int64) string {
-	return fmt.Sprintf("bytes %d-%d/%d", r.Start, r.Start+r.Length-1, size)
+	sizeStr := "*"
+	if size != -1 {
+		sizeStr = fmt.Sprintf("%d", size)
+	}
+	return fmt.Sprintf("bytes %d-%d/%s", r.Start, r.Start+r.Length-1, sizeStr)
 }
 
 // ErrNotSatisfiableRange :
