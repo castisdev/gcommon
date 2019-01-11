@@ -41,6 +41,9 @@ func (r *RangeResponse) GetContentLength() (int64, error) {
 	if len(toks) != 2 {
 		return -1, fmt.Errorf("invalid Content-Range header: %s", cr)
 	}
+	if toks[1] == "*" {
+		return -1, nil
+	}
 	len, err := strconv.ParseInt(toks[1], 10, 64)
 	if err != nil {
 		return -1, fmt.Errorf("invalid Content-Range header: %s", cr)
@@ -84,6 +87,9 @@ func ParseRange(s string, size int64) ([]HTTPRange, error) {
 		start, end := strings.TrimSpace(ra[:i]), strings.TrimSpace(ra[i+1:])
 		var r HTTPRange
 		if start == "" {
+			if size == -1 {
+				return nil, fmt.Errorf("invalid range header(%s)", s)
+			}
 			// If no start is specified, end specifies the
 			// range start relative to the end of the file.
 			i, err := strconv.ParseInt(end, 10, 64)
@@ -100,7 +106,7 @@ func ParseRange(s string, size int64) ([]HTTPRange, error) {
 			if err != nil {
 				return nil, fmt.Errorf("invalid range header(%s)", s)
 			}
-			if i >= size || i < 0 {
+			if (size != -1 && i >= size) || i < 0 {
 				return nil, ErrNotSatisfiableRange
 			}
 			r.Start = i
@@ -112,7 +118,7 @@ func ParseRange(s string, size int64) ([]HTTPRange, error) {
 				if err != nil || r.Start > i {
 					return nil, fmt.Errorf("invalid range header(%s)", s)
 				}
-				if i >= size {
+				if size != -1 && i >= size {
 					i = size - 1
 				}
 				r.Length = i - r.Start + 1
