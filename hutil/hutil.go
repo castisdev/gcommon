@@ -1,6 +1,7 @@
 package hutil
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -201,6 +202,14 @@ func (r *RateLimitResponseWriter) Flush() {
 	}
 }
 
+// Hijack :
+func (r *RateLimitResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hj, ok := r.respWriter.(http.Hijacker); ok {
+		return hj.Hijack()
+	}
+	return nil, nil, fmt.Errorf("doesn't support hijacking")
+}
+
 // LogResponseWriter :
 type LogResponseWriter struct {
 	respWriter http.ResponseWriter
@@ -247,6 +256,14 @@ func (w *LogResponseWriter) Flush() {
 	if f, ok := w.respWriter.(http.Flusher); ok {
 		f.Flush()
 	}
+}
+
+// Hijack :
+func (w *LogResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hj, ok := w.respWriter.(http.Hijacker); ok {
+		return hj.Hijack()
+	}
+	return nil, nil, fmt.Errorf("doesn't support hijacking")
 }
 
 // HTTPClient :
