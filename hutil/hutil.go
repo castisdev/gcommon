@@ -214,11 +214,13 @@ func (r *RateLimitResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) 
 type LogResponseWriter struct {
 	respWriter http.ResponseWriter
 	reqID      string
+	originKey  string
+	req        *http.Request
 }
 
 // NewLogResponseWriter :
-func NewLogResponseWriter(w http.ResponseWriter, reqID string) http.ResponseWriter {
-	return &LogResponseWriter{respWriter: w, reqID: reqID}
+func NewLogResponseWriter(w http.ResponseWriter, reqID, originKey string, req *http.Request) http.ResponseWriter {
+	return &LogResponseWriter{respWriter: w, reqID: reqID, originKey: originKey, req: req}
 }
 
 // Header :
@@ -234,14 +236,15 @@ func (w *LogResponseWriter) WriteHeader(code int) {
 		return
 	}
 
+	key := fmt.Sprintf("[%s%s]", w.originKey, w.req.URL.Path)
 	if clog.IsDebugEnable() {
-		clog.Debugf1(w.reqID, "response %d %v", code, w.Header())
+		clog.Debugf1(w.reqID, "%s response %d %v", key, code, w.Header())
 	} else {
 		switch code {
 		case 301, 302, 303, 307:
-			clog.Infof1(w.reqID, "response %d, Location:%s", code, w.Header().Get("Location"))
+			clog.Infof1(w.reqID, "%s response %d, Location:%s", key, code, w.Header().Get("Location"))
 		default:
-			clog.Infof1(w.reqID, "response %d", code)
+			clog.Infof1(w.reqID, "%s response %d", key, code)
 		}
 	}
 }
