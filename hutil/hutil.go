@@ -423,6 +423,14 @@ type HTTPServer struct {
 	afterShutdownFn func()
 }
 
+// ServeTLS : https
+func (s *HTTPServer) ServeTLS(certFile, keyFile string) error {
+	if s.listener != nil {
+		return s.srv.ServeTLS(s.listener, certFile, keyFile)
+	}
+	return s.srv.ListenAndServeTLS(certFile, keyFile)
+}
+
 // Serve :
 func (s *HTTPServer) Serve() error {
 	if s.listener != nil {
