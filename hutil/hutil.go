@@ -480,3 +480,8 @@ func NewHTTPServer(addr string, h http.Handler, shutdownFn func()) (*HTTPServer,
 		afterShutdownFn: shutdownFn,
 	}, nil
 }
+
+// Foo : for test
+func Foo() error {
+	return nil
+}
