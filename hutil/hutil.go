@@ -452,7 +452,8 @@ func (s *HTTPServer) Shutdown(timeout time.Duration) {
 }
 
 // NewHTTPUnixSocketServer :
-func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func()) (*HTTPServer, error) {
+func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func(),
+	connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
 	if err := os.RemoveAll(sockPath); err != nil {
 		return nil, fmt.Errorf("failed to remove unix socket file [%v], %v", sockPath, err)
 	}
@@ -461,7 +462,7 @@ func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func())
 		return nil, fmt.Errorf("failed to listen with unix domain socket [%v], %v", sockPath, err)
 	}
 	return &HTTPServer{
-		srv:      &http.Server{Handler: h},
+		srv:      &http.Server{Handler: h, ConnState: connStateFn},
 		listener: l,
 		afterShutdownFn: func() {
 			os.RemoveAll(sockPath)
@@ -473,9 +474,10 @@ func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func())
 }
 
 // NewHTTPServer :
-func NewHTTPServer(addr string, h http.Handler, shutdownFn func()) (*HTTPServer, error) {
+func NewHTTPServer(addr string, h http.Handler, shutdownFn func(),
+	connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
 	return &HTTPServer{
-		srv:             &http.Server{Addr: addr, Handler: h},
+		srv:             &http.Server{Addr: addr, Handler: h, ConnState: connStateFn},
 		listener:        nil,
 		afterShutdownFn: shutdownFn,
 	}, nil
