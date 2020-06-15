@@ -302,33 +302,13 @@ func NewHTTPOverUdsClientWithoutRedirect(timeout time.Duration, sockFile string)
 }
 
 func newClient(timeout time.Duration, autoRedirect bool, localAddr net.Addr) *HTTPClient {
-	dial := func(ctx context.Context, network, addr string) (net.Conn, error) {
-		conn, err := (&net.Dialer{
-			LocalAddr: localAddr,
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext(ctx, network, addr)
-		if err != nil {
-			return nil, err
-		}
-		tcpConn, ok := conn.(*net.TCPConn)
-		if !ok {
-			err = errors.New("conn is not tcp")
-			return nil, err
-		}
-		err = tcpConn.SetLinger(0)
-		if err != nil {
-			return nil, err
-		}
-		return conn, nil
-	}
 	c := &HTTPClient{
 		Client: &http.Client{
 			Timeout: timeout,
-			// http.DefaultTransport + (DisableKeepAlives: true)
+			// http.DefaultTransport + (DisableKeepAlives: true) [ver >= go1.11: + SO_REUSEADDR]
 			Transport: &http.Transport{
 				Proxy:                 http.ProxyFromEnvironment,
-				DialContext:           dial,
+				Dial:                  dialer(localAddr).Dial,
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 				DisableKeepAlives:     true,
