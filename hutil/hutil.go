@@ -3,6 +3,7 @@ package hutil
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -278,15 +279,15 @@ type HTTPClient struct {
 const redirectErrorStr = "redirect response"
 
 // NewHTTPClient :
-func NewHTTPClient(timeout time.Duration, localAddr net.Addr) *HTTPClient {
+func NewHTTPClient(timeout time.Duration, localAddr net.Addr, tlsConfig *tls.Config) *HTTPClient {
 	autoRedirect := true
-	return newClient(timeout, autoRedirect, localAddr)
+	return newClient(timeout, autoRedirect, localAddr, tlsConfig)
 }
 
 // NewHTTPClientWithoutRedirect :
-func NewHTTPClientWithoutRedirect(timeout time.Duration, localAddr net.Addr) *HTTPClient {
+func NewHTTPClientWithoutRedirect(timeout time.Duration, localAddr net.Addr, tlsConfig *tls.Config) *HTTPClient {
 	autoRedirect := false
-	return newClient(timeout, autoRedirect, localAddr)
+	return newClient(timeout, autoRedirect, localAddr, tlsConfig)
 }
 
 // NewHTTPOverUdsClient :
@@ -301,7 +302,7 @@ func NewHTTPOverUdsClientWithoutRedirect(timeout time.Duration, sockFile string)
 	return newClientWithUds(timeout, autoRedirect, sockFile)
 }
 
-func newClient(timeout time.Duration, autoRedirect bool, localAddr net.Addr) *HTTPClient {
+func newClient(timeout time.Duration, autoRedirect bool, localAddr net.Addr, tlsConfig *tls.Config) *HTTPClient {
 	c := &HTTPClient{
 		Client: &http.Client{
 			Timeout: timeout,
@@ -312,6 +313,7 @@ func newClient(timeout time.Duration, autoRedirect bool, localAddr net.Addr) *HT
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 				DisableKeepAlives:     true,
+				TLSClientConfig:       tlsConfig,
 			},
 		},
 		FollowRedirect: autoRedirect,
@@ -368,7 +370,7 @@ func (h *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 // Get : wrapper of http.Get. it uses hutil.DefaultTransport()
 func Get(url string) (*http.Response, error) {
-	cl := NewHTTPClient(0, nil)
+	cl := NewHTTPClient(0, nil, nil)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -378,7 +380,7 @@ func Get(url string) (*http.Response, error) {
 
 // Post : wrapper of http.Post. it uses hutil.DefaultTransport()
 func Post(url string, bodyType string, body io.Reader) (*http.Response, error) {
-	cl := NewHTTPClient(0, nil)
+	cl := NewHTTPClient(0, nil, nil)
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		return nil, err
