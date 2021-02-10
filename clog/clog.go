@@ -131,3 +131,18 @@ func Criticalf(format string, v ...interface{}) {
 func IsDebugEnable() bool {
 	return cilog.GetMinLevel() == cilog.DEBUG
 }
+
+// Start :
+func Start() {
+	StartWithBufferSize(1024)
+}
+
+// StartWithBufferSize :
+func StartWithBufferSize(size int) {
+	cilog.StartWithBufferSize(size)
+}
+
+// Stop :
+func Stop() {
+	cilog.Stop()
+}
