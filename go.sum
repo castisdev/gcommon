@@ -1,5 +1,5 @@
-github.com/castisdev/cilog v0.0.0-20210121073638-21a1afc873af h1:hGJfUQTNpKr7DLRvqSQP43NHA6I9YNVU3D+gFRP8mr0=
-github.com/castisdev/cilog v0.0.0-20210121073638-21a1afc873af/go.mod h1:vfE1zbF2wlCmUPcwlar85xtL/FqKDVkx/GWn/MJNgKc=
+github.com/castisdev/cilog v0.0.0-20210210044956-2381546a4d16 h1:TsRfYxHE3yYyhf6Ek3hSywaCjoH3EHefB043dlPjzRY=
+github.com/castisdev/cilog v0.0.0-20210210044956-2381546a4d16/go.mod h1:vfE1zbF2wlCmUPcwlar85xtL/FqKDVkx/GWn/MJNgKc=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/uuid v1.1.5 h1:kxhtnfFVi+rYdOALN0B3k9UT86zVJKfBimRaciULW4I=
