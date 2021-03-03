@@ -17,6 +17,7 @@ import (
 
 	"github.com/castisdev/gcommon/clog"
 	"github.com/juju/ratelimit"
+	"golang.org/x/net/netutil"
 )
 
 // RangeResponse :
@@ -416,25 +417,25 @@ func Query(r *http.Request, name string) string {
 
 // HTTPServer :
 type HTTPServer struct {
-	srv             *http.Server
-	listener        net.Listener
-	afterShutdownFn func()
+	Srv             *http.Server
+	Listener        net.Listener
+	AfterShutdownFn func()
 }
 
 // ServeTLS : https
 func (s *HTTPServer) ServeTLS(certFile, keyFile string) error {
-	if s.listener != nil {
-		return s.srv.ServeTLS(s.listener, certFile, keyFile)
+	if s.Listener != nil {
+		return s.Srv.ServeTLS(s.Listener, certFile, keyFile)
 	}
-	return s.srv.ListenAndServeTLS(certFile, keyFile)
+	return s.Srv.ListenAndServeTLS(certFile, keyFile)
 }
 
 // Serve :
 func (s *HTTPServer) Serve() error {
-	if s.listener != nil {
-		return s.srv.Serve(s.listener)
+	if s.Listener != nil {
+		return s.Srv.Serve(s.Listener)
 	}
-	return s.srv.ListenAndServe()
+	return s.Srv.ListenAndServe()
 }
 
 // Shutdown :
@@ -442,10 +443,10 @@ func (s *HTTPServer) Shutdown(timeout time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	s.srv.Shutdown(ctx)
+	s.Srv.Shutdown(ctx)
 
-	if s.afterShutdownFn != nil {
-		s.afterShutdownFn()
+	if s.AfterShutdownFn != nil {
+		s.AfterShutdownFn()
 	}
 }
 
@@ -460,9 +461,31 @@ func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func(),
 		return nil, fmt.Errorf("failed to listen with unix domain socket [%v], %v", sockPath, err)
 	}
 	return &HTTPServer{
-		srv:      &http.Server{Handler: h, ConnState: connStateFn},
-		listener: l,
-		afterShutdownFn: func() {
+		Srv:      &http.Server{Handler: h, ConnState: connStateFn},
+		Listener: l,
+		AfterShutdownFn: func() {
+			os.RemoveAll(sockPath)
+			if shutdownFn != nil {
+				shutdownFn()
+			}
+		},
+	}, nil
+}
+
+// NewLimitHTTPUnixSocketServer :
+func NewLimitHTTPUnixSocketServer(sockPath string, h http.Handler, n int,
+	shutdownFn func(), connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
+	if err := os.RemoveAll(sockPath); err != nil {
+		return nil, fmt.Errorf("failed to remove unix socket file [%v], %v", sockPath, err)
+	}
+	l, err := net.Listen("unix", sockPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to listen with unix domain socket [%v], %v", sockPath, err)
+	}
+	return &HTTPServer{
+		Srv:      &http.Server{Handler: h, ConnState: connStateFn},
+		Listener: netutil.LimitListener(l, n),
+		AfterShutdownFn: func() {
 			os.RemoveAll(sockPath)
 			if shutdownFn != nil {
 				shutdownFn()
@@ -475,8 +498,27 @@ func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func(),
 func NewHTTPServer(addr string, h http.Handler, shutdownFn func(),
 	connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
 	return &HTTPServer{
-		srv:             &http.Server{Addr: addr, Handler: h, ConnState: connStateFn},
-		listener:        nil,
-		afterShutdownFn: shutdownFn,
+		Srv:             &http.Server{Addr: addr, Handler: h, ConnState: connStateFn},
+		Listener:        nil,
+		AfterShutdownFn: shutdownFn,
+	}, nil
+}
+
+// NewLimitHTTPServer :
+func NewLimitHTTPServer(addr string, h http.Handler, n int,
+	shutdownFn func(), connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
+
+	if addr == "" {
+		addr = ":http"
+	}
+	l, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to listen with socket [%v], %v", addr, err)
+	}
+
+	return &HTTPServer{
+		Srv:             &http.Server{Addr: addr, Handler: h, ConnState: connStateFn},
+		Listener:        netutil.LimitListener(l, n),
+		AfterShutdownFn: shutdownFn,
 	}, nil
 }
