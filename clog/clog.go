@@ -9,8 +9,8 @@ import (
 )
 
 // Set :
-func Set(dir, module, moduleVersion string, minLevel cilog.Level) {
-	cilog.Set(cilog.NewLogWriter(dir, module, 10*1024*1024), module, moduleVersion, minLevel)
+func Set(dir, module, moduleVersion string, minLevel cilog.Level, rotateSize int64) {
+	cilog.Set(cilog.NewLogWriter(dir, module, rotateSize), module, moduleVersion, minLevel)
 }
 
 // SetWriter :
