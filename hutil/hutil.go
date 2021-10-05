@@ -69,7 +69,7 @@ func (r HTTPRange) ContentRange(size int64) string {
 }
 
 // ErrNotSatisfiableRange :
-var ErrNotSatisfiableRange = errors.New("Not satisfiable range")
+var ErrNotSatisfiableRange = errors.New("not satisfiable range")
 
 // ParseRange parses a Range header string as per RFC 2616.
 // from net/http package
@@ -240,13 +240,13 @@ func (w *LogResponseWriter) WriteHeader(code int) {
 
 	key := fmt.Sprintf("[%s%s]", w.originKey, w.req.URL.Path)
 	if clog.IsDebugEnable() {
-		clog.Debugf1(w.reqID, "%s response %d %v", key, code, w.Header())
+		clog.Debugf1(w.reqID, "%s response %s, %v", key, Status(code), w.Header())
 	} else {
 		switch code {
 		case 301, 302, 303, 307:
-			clog.Infof1(w.reqID, "%s response %d, Location:%s", key, code, w.Header().Get("Location"))
+			clog.Infof1(w.reqID, "%s response %s, Location:%s", key, Status(code), w.Header().Get("Location"))
 		default:
-			clog.Infof1(w.reqID, "%s response %d", key, code)
+			clog.Infof1(w.reqID, "%s response %s", key, Status(code))
 		}
 	}
 }
@@ -319,7 +319,7 @@ func newClient(timeout time.Duration, autoRedirect bool, localAddr net.Addr, tls
 		},
 		FollowRedirect: autoRedirect,
 	}
-	if c.FollowRedirect == false {
+	if !c.FollowRedirect {
 		c.CheckRedirect = c.checkRedirectError
 	}
 	return c
@@ -339,7 +339,7 @@ func newClientWithUds(timeout time.Duration, autoRedirect bool, sockFile string)
 		FollowRedirect: autoRedirect,
 	}
 
-	if c.FollowRedirect == false {
+	if !c.FollowRedirect {
 		c.CheckRedirect = c.checkRedirectError
 	}
 	return c
@@ -521,4 +521,9 @@ func NewLimitHTTPServer(addr string, h http.Handler, n int,
 		Listener:        netutil.LimitListener(l, n),
 		AfterShutdownFn: shutdownFn,
 	}, nil
+}
+
+// Status :
+func Status(statusCode int) string {
+	return fmt.Sprintf("%d %s", statusCode, http.StatusText(statusCode))
 }
