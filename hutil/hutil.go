@@ -451,7 +451,8 @@ func (s *HTTPServer) Shutdown(timeout time.Duration) {
 }
 
 // NewHTTPUnixSocketServer :
-func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func(),
+func NewHTTPUnixSocketServer(sockPath string, h http.Handler,
+	shutdownFn func(),
 	connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
 	if err := os.RemoveAll(sockPath); err != nil {
 		return nil, fmt.Errorf("failed to remove unix socket file [%v], %v", sockPath, err)
@@ -474,7 +475,8 @@ func NewHTTPUnixSocketServer(sockPath string, h http.Handler, shutdownFn func(),
 
 // NewLimitHTTPUnixSocketServer :
 func NewLimitHTTPUnixSocketServer(sockPath string, h http.Handler, n int,
-	shutdownFn func(), connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
+	shutdownFn func(),
+	connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
 	if err := os.RemoveAll(sockPath); err != nil {
 		return nil, fmt.Errorf("failed to remove unix socket file [%v], %v", sockPath, err)
 	}
@@ -495,10 +497,17 @@ func NewLimitHTTPUnixSocketServer(sockPath string, h http.Handler, n int,
 }
 
 // NewHTTPServer :
-func NewHTTPServer(addr string, h http.Handler, shutdownFn func(),
-	connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
+func NewHTTPServer(addr string, h http.Handler,
+	shutdownFn func(),
+	connStateFn func(net.Conn, http.ConnState),
+	getCertificateFn func(*tls.ClientHelloInfo) (*tls.Certificate, error)) (*HTTPServer, error) {
 	return &HTTPServer{
-		Srv:             &http.Server{Addr: addr, Handler: h, ConnState: connStateFn},
+		Srv: &http.Server{
+			Addr:      addr,
+			Handler:   h,
+			ConnState: connStateFn,
+			TLSConfig: &tls.Config{GetCertificate: getCertificateFn},
+		},
 		Listener:        nil,
 		AfterShutdownFn: shutdownFn,
 	}, nil
@@ -506,7 +515,9 @@ func NewHTTPServer(addr string, h http.Handler, shutdownFn func(),
 
 // NewLimitHTTPServer :
 func NewLimitHTTPServer(addr string, h http.Handler, n int,
-	shutdownFn func(), connStateFn func(net.Conn, http.ConnState)) (*HTTPServer, error) {
+	shutdownFn func(),
+	connStateFn func(net.Conn, http.ConnState),
+	getCertificateFn func(*tls.ClientHelloInfo) (*tls.Certificate, error)) (*HTTPServer, error) {
 
 	if addr == "" {
 		addr = ":http"
@@ -517,7 +528,12 @@ func NewLimitHTTPServer(addr string, h http.Handler, n int,
 	}
 
 	return &HTTPServer{
-		Srv:             &http.Server{Addr: addr, Handler: h, ConnState: connStateFn},
+		Srv: &http.Server{
+			Addr:      addr,
+			Handler:   h,
+			ConnState: connStateFn,
+			TLSConfig: &tls.Config{GetCertificate: getCertificateFn},
+		},
 		Listener:        netutil.LimitListener(l, n),
 		AfterShutdownFn: shutdownFn,
 	}, nil
