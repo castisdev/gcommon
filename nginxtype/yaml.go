@@ -42,6 +42,13 @@ func (r *Regexp) MarshalYAML() (interface{}, error) {
 	return r.String(), nil
 }
 
+func (r *Regexp) MarshalJSON() ([]byte, error) {
+	if r == nil || r.Regexp == nil {
+		return nil, nil
+	}
+	return []byte("\"" + r.String() + "\""), nil
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // URL :
@@ -75,6 +82,13 @@ func (u *URL) MarshalYAML() (interface{}, error) {
 		return nil, nil
 	}
 	return u.String(), nil
+}
+
+func (u *URL) MarshalJSON() ([]byte, error) {
+	if u == nil {
+		return nil, nil
+	}
+	return []byte("\"" + u.String() + "\""), nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////
