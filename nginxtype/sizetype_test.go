@@ -88,9 +88,6 @@ func Test_parseSize(t *testing.T) {
 }
 
 func Test_UnmarshalYAML_Size(t *testing.T) {
-	type args struct {
-		unmarshal func(interface{}) error
-	}
 	tests := []struct {
 		name    string
 		data    string

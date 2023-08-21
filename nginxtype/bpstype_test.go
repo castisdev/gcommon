@@ -88,9 +88,6 @@ func Test_parseBps(t *testing.T) {
 }
 
 func Test_UnmarshalYAML_Bps(t *testing.T) {
-	type args struct {
-		unmarshal func(interface{}) error
-	}
 	tests := []struct {
 		name    string
 		data    string

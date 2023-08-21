@@ -2,6 +2,7 @@ package nginxtype
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -46,7 +47,7 @@ func (r *Regexp) MarshalJSON() ([]byte, error) {
 	if r == nil || r.Regexp == nil {
 		return nil, nil
 	}
-	return []byte("\"" + r.String() + "\""), nil
+	return json.Marshal(r.String())
 }
 
 ////////////////////////////////////////////////////////////////////////////////
