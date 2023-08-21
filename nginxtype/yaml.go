@@ -89,7 +89,7 @@ func (u *URL) MarshalJSON() ([]byte, error) {
 	if u == nil {
 		return nil, nil
 	}
-	return []byte("\"" + u.String() + "\""), nil
+	return json.Marshal(u.String())
 }
 
 ////////////////////////////////////////////////////////////////////////////////
