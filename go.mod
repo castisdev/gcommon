@@ -3,7 +3,7 @@ module github.com/castisdev/gcommon
 go 1.22.1
 
 require (
-	github.com/castisdev/cilog v0.0.0-20240403050536-0af6a81c1967
+	github.com/castisdev/cilog v0.0.0-20240403103119-e979efd43b1d
 	github.com/juju/ratelimit v1.0.2
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/net v0.22.0
