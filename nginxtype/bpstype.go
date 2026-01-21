@@ -122,11 +122,7 @@ func unmarshalBpsYAML(unmarshal func(interface{}) error) (int64, error) {
 }
 
 func unmarshalBpsJSON(data []byte) (int64, error) {
-	// JSON 문자열에서 따옴표 제거
-	if len(data) < 2 || data[0] != '"' || data[len(data)-1] != '"' {
-		return 0, errors.New("unmarshalBpsJSON: invalid JSON string")
-	}
-	s := string(data[1 : len(data)-1])
+	s := strings.Trim(string(data), "\"")
 	return parseBps(s)
 }
 
