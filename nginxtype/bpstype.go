@@ -19,6 +19,16 @@ func (i *Uint32Bps) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// UnmarshalJSON :
+func (i *Uint32Bps) UnmarshalJSON(data []byte) error {
+	size, err := unmarshalBpsJSON(data)
+	if err != nil {
+		return err
+	}
+	*i = Uint32Bps(size)
+	return nil
+}
+
 // Val :
 func (i *Uint32Bps) Val() uint32 {
 	return uint32(*i)
@@ -30,6 +40,16 @@ type Uint64Bps uint64
 // UnmarshalYAML :
 func (i *Uint64Bps) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	size, err := unmarshalBpsYAML(unmarshal)
+	if err != nil {
+		return err
+	}
+	*i = Uint64Bps(size)
+	return nil
+}
+
+// UnmarshalJSON :
+func (i *Uint64Bps) UnmarshalJSON(data []byte) error {
+	size, err := unmarshalBpsJSON(data)
 	if err != nil {
 		return err
 	}
@@ -55,6 +75,16 @@ func (i *Int64Bps) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// UnmarshalJSON :
+func (i *Int64Bps) UnmarshalJSON(data []byte) error {
+	size, err := unmarshalBpsJSON(data)
+	if err != nil {
+		return err
+	}
+	*i = Int64Bps(size)
+	return nil
+}
+
 // Val :
 func (i *Int64Bps) Val() int64 {
 	return int64(*i)
@@ -73,11 +103,30 @@ func (i *IntBps) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// UnmarshalJSON :
+func (i *IntBps) UnmarshalJSON(data []byte) error {
+	size, err := unmarshalBpsJSON(data)
+	if err != nil {
+		return err
+	}
+	*i = IntBps(size)
+	return nil
+}
+
 func unmarshalBpsYAML(unmarshal func(interface{}) error) (int64, error) {
 	var s string
 	if err := unmarshal(&s); err != nil {
 		return 0, err
 	}
+	return parseBps(s)
+}
+
+func unmarshalBpsJSON(data []byte) (int64, error) {
+	// JSON 문자열에서 따옴표 제거
+	if len(data) < 2 || data[0] != '"' || data[len(data)-1] != '"' {
+		return 0, errors.New("unmarshalBpsJSON: invalid JSON string")
+	}
+	s := string(data[1 : len(data)-1])
 	return parseBps(s)
 }
 
